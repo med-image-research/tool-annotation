@@ -50,5 +50,5 @@ Mở [http://localhost:3000](http://localhost:3000).
 
 ### 2. Lưu trữ ảnh X-quang
 
-- **Khuyên dùng khi có nhiều ảnh**: Đưa ảnh lên **Cloudflare R2** hoặc **Cloudinary** rồi gán đường dẫn thư mục ảnh vào biến `NEXT_PUBLIC_IMAGE_CDN_BASE_URL` trên Vercel. Với Cloudinary, cần giữ nguyên tên file gốc làm Public ID và dùng đường dẫn ảnh gốc để không bị nén làm giảm độ nét phim.
+- **Khuyên dùng khi có nhiều ảnh**: Đưa ảnh lên **Azure Blob Storage**, **Cloudflare R2** hoặc **Cloudinary** rồi gán đường dẫn container hoặc thư mục ảnh vào biến `NEXT_PUBLIC_IMAGE_CDN_BASE_URL` trên Vercel. Nếu dùng Azure với link SAS có tham số truy vấn phía sau, hệ thống tự giữ nguyên phần SAS token khi ghép tên file. Với Cloudinary, cần giữ nguyên tên file gốc làm Public ID và dùng đường dẫn ảnh gốc để không bị nén làm giảm độ nét phim.
 - **Chạy thử nhanh với 99 ảnh trong CSV**: Chạy `pnpm sync:images` để chép 99 ảnh vào `public/xrays`, sau đó đặt `NEXT_PUBLIC_IMAGE_CDN_BASE_URL=/xrays` trên Vercel.

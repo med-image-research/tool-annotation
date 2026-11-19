@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import type { NextRequest } from 'next/server';
+import { buildCdnImageUrl } from '@/lib/imageUrl';
 
 const DEFAULT_LOCAL_IMAGES_DIR = 'D:\\uit\\kltn\\requirement_ViX-Ray\\images';
 
@@ -20,8 +21,7 @@ export async function GET(
 
   const cdnBase = process.env.IMAGE_CDN_BASE_URL?.trim();
   if (cdnBase) {
-    const normalized = cdnBase.replace(/\/+$/, '');
-    return Response.redirect(`${normalized}/${imageId}.jpg`, 307);
+    return Response.redirect(buildCdnImageUrl(cdnBase, imageId), 307);
   }
 
   const publicXrayPath = path.join(process.cwd(), 'public', 'xrays', `${imageId}.jpg`);
