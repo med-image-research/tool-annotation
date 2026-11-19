@@ -1,26 +1,103 @@
 @import "tailwindcss";
-
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:where(.dark, .dark *));
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+:root,
+html.light {
+  color-scheme: light;
+  --bg-app: #f3f6fa;
+  --bg-panel: #ffffff;
+  --bg-subpanel: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-card-active: #f0f9ff;
+  --bg-control: #f1f5f9;
+  --bg-control-hover: #e2e8f0;
+  --bg-viewport: #e6ebf2;
+  --viewport-dot: rgba(15, 23, 42, 0.08);
+  --border-main: #e2e8f0;
+  --border-strong: #cbd5e1;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  --accent-bg: rgba(2, 132, 199, 0.12);
+  --accent-border: rgba(2, 132, 199, 0.42);
+  --accent-text: #0369a1;
+  --scroll-thumb: #cbd5e1;
+  --scroll-thumb-hover: #94a3b8;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+html.dark {
+  color-scheme: dark;
+  --bg-app: #090c10;
+  --bg-panel: #0d1117;
+  --bg-subpanel: #0b0f15;
+  --bg-card: #10151d;
+  --bg-card-active: #151c27;
+  --bg-control: #131922;
+  --bg-control-hover: #1b2432;
+  --bg-viewport: #07090d;
+  --viewport-dot: rgba(148, 163, 184, 0.08);
+  --border-main: #1e2633;
+  --border-strong: #2c384a;
+  --text-primary: #e6edf3;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --accent-bg: rgba(34, 211, 238, 0.16);
+  --accent-border: rgba(34, 211, 238, 0.42);
+  --accent-text: #67e8f9;
+  --scroll-thumb: #263140;
+  --scroll-thumb-hover: #36465c;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll-thumb) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--scroll-thumb);
+  border-radius: 9999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--scroll-thumb-hover);
+}
+
+.pacs-viewport-bg {
+  background-color: var(--bg-viewport);
+  background-image: radial-gradient(circle at 1px 1px, var(--viewport-dot) 1px, transparent 0);
+  background-size: 24px 24px;
+}
+
+input[type="range"].pacs-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 9999px;
+  background: var(--border-strong);
+  outline: none;
+}
+
+input[type="range"].pacs-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 9999px;
+  background: #0284c7;
+  border: 2px solid var(--bg-panel);
+  cursor: pointer;
 }

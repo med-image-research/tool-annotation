@@ -36,6 +36,10 @@ yarn-error.log*
 # vercel
 .vercel
 
+# local annotation store generated from CSV
+/data/annotations-store.json
+/data/annotations-store.json.tmp
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
