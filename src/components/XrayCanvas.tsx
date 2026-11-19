@@ -136,6 +136,7 @@ export function XrayCanvas({
   onResetEnhancements,
 }: XrayCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
   const naturalSizeRef = useRef({ w: 0, h: 0 });
   const hasFittedRef = useRef(false);
   const [viewportSize, setViewportSize] = useState({ w: 0, h: 0 });
@@ -148,6 +149,36 @@ export function XrayCanvas({
   const [drag, setDrag] = useState<DragSession | null>(null);
 
   const imgSrc = getXrayImageSrc(imageId);
+
+  const handleImageReady = useCallback(
+    (img: HTMLImageElement) => {
+      const nw = img.naturalWidth;
+      const nh = img.naturalHeight;
+      if (nw <= 0 || nh <= 0) return;
+
+      naturalSizeRef.current = { w: nw, h: nh };
+      setNaturalSize({ w: nw, h: nh });
+      setLoadedImageId(imageId);
+      setImageError(false);
+
+      const vp = img.closest('[data-pacs-viewport]');
+      const rect = vp?.getBoundingClientRect();
+      if (rect && rect.width > 0 && rect.height > 0) {
+        hasFittedRef.current = true;
+        setTransform(computeFitTransform(rect.width, rect.height, nw, nh));
+      }
+    },
+    [imageId]
+  );
+
+  useEffect(() => {
+    const img = imgRef.current;
+    if (!img || !img.complete) return;
+    queueMicrotask(() => {
+      if (img.naturalWidth > 0) handleImageReady(img);
+      else setImageError(true);
+    });
+  }, [handleImageReady]);
 
   const fitScale = useMemo(
     () => computeFitTransform(viewportSize.w, viewportSize.h, naturalSize.w, naturalSize.h).scale,
@@ -441,26 +472,12 @@ export function XrayCanvas({
             {/* Native img required for lossless CSS Window/Level filters and pixel zoom */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
+              ref={imgRef}
               key={imageId}
               src={imgSrc}
               alt={`Ảnh X-quang ${imageId}`}
               draggable={false}
-              onLoad={(e) => {
-                const img = e.currentTarget;
-                const nw = img.naturalWidth;
-                const nh = img.naturalHeight;
-                naturalSizeRef.current = { w: nw, h: nh };
-                setNaturalSize({ w: nw, h: nh });
-                setLoadedImageId(imageId);
-                setImageError(false);
-
-                const vp = img.closest('[data-pacs-viewport]');
-                const rect = vp?.getBoundingClientRect();
-                if (rect && rect.width > 0 && rect.height > 0) {
-                  hasFittedRef.current = true;
-                  setTransform(computeFitTransform(rect.width, rect.height, nw, nh));
-                }
-              }}
+              onLoad={(e) => handleImageReady(e.currentTarget)}
               onError={() => setImageError(true)}
               style={{
                 filter: `brightness(${brightness}%) contrast(${contrast}%) invert(${invertImage ? 1 : 0})`,
