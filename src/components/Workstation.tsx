@@ -315,22 +315,23 @@ export function Workstation({ initialData, initialImageId }: WorkstationProps) {
 
   const handleUpdateBox = useCallback(
     (findingId: string, boxIndex: number, nextBox: BoundingBox, commit: boolean) => {
+      const currentFinding = currentCase?.findings.find((f) => f.id === findingId);
+      if (!currentFinding) return;
+
       if (!dragStartBoxesRef.current.has(findingId)) {
-        const currentFinding = currentCase?.findings.find((f) => f.id === findingId);
-        if (currentFinding) {
-          dragStartBoxesRef.current.set(
-            findingId,
-            currentFinding.boxes.map((b) => [...b] as BoundingBox)
-          );
-        }
+        dragStartBoxesRef.current.set(
+          findingId,
+          currentFinding.boxes.map((b) => [...b] as BoundingBox)
+        );
       }
 
-      let latestBoxes: BoundingBox[] = [];
-      patchFindingLocal(findingId, (f) => {
-        const nextBoxes = f.boxes.map((b, i) => (i === boxIndex ? nextBox : b));
-        latestBoxes = nextBoxes;
-        return { ...f, boxes: nextBoxes, updatedAt: new Date().toISOString() };
-      });
+      const latestBoxes = currentFinding.boxes.map((b, i) => (i === boxIndex ? nextBox : b));
+
+      patchFindingLocal(findingId, (f) => ({
+        ...f,
+        boxes: f.boxes.map((b, i) => (i === boxIndex ? nextBox : b)),
+        updatedAt: new Date().toISOString(),
+      }));
 
       if (commit) {
         const prevBoxes = dragStartBoxesRef.current.get(findingId);

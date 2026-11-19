@@ -374,9 +374,18 @@ export function XrayCanvas({
       if (box[2] - box[0] >= MIN_BOX_SIZE && box[3] - box[1] >= MIN_BOX_SIZE) {
         onAddBox(drag.findingId, box);
       }
-    } else if ((drag.kind === 'move' || drag.kind === 'resize') && drag.moved) {
-      const current = findings.find((item) => item.id === drag.findingId)?.boxes[drag.boxIndex];
-      if (current) onUpdateBox(drag.findingId, drag.boxIndex, current, true);
+    } else if (drag.kind === 'move' || drag.kind === 'resize') {
+      const norm = eventToNorm(e.currentTarget, e.clientX, e.clientY);
+      const fallbackBox = findings.find((item) => item.id === drag.findingId)?.boxes[drag.boxIndex];
+      const finalBox = !norm
+        ? fallbackBox
+        : drag.kind === 'move'
+          ? moveBox(drag.initialBox, norm.nx - drag.startNx, norm.ny - drag.startNy)
+          : resizeBox(drag.initialBox, drag.handle, norm.nx, norm.ny);
+      const changed = finalBox ? !boxesEqual([finalBox], [drag.initialBox]) : false;
+      if (finalBox && (drag.moved || changed)) {
+        onUpdateBox(drag.findingId, drag.boxIndex, finalBox, true);
+      }
     }
 
     setDrag(null);

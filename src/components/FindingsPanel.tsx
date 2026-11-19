@@ -10,6 +10,7 @@ import {
   RotateCcw,
   SquarePlus,
   Trash2,
+  X,
 } from 'lucide-react';
 import { getFindingColor } from '@/lib/colors';
 import { boxesEqual } from '@/lib/csv';
@@ -97,6 +98,12 @@ function FindingCard({
               <span className="font-mono text-[11px] text-[var(--text-secondary)] truncate">
                 {finding.id}
               </span>
+              {isVerified && (
+                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/35 shrink-0">
+                  <Check className="w-2.5 h-2.5" />
+                  Đã xác nhận
+                </span>
+              )}
               {finding.impressionRelevancePrior === 'no' && (
                 <span
                   title="Không nằm trong impression kết luận gốc"
@@ -217,12 +224,21 @@ function FindingCard({
               onClick={() => onVerify(isVerified ? 'pending' : 'verified')}
               className={`w-full h-8 px-3 rounded-lg text-xs font-medium border flex items-center justify-center gap-1.5 transition-all ${
                 isVerified
-                  ? 'bg-emerald-500/18 border-emerald-500/55 text-emerald-700 dark:text-emerald-300 shadow-xs'
-                  : 'bg-[var(--bg-control)] border-[var(--border-main)] text-[var(--text-secondary)] hover:border-emerald-500/45 hover:text-emerald-600 dark:hover:text-emerald-300'
+                  ? 'bg-[var(--bg-control)] border-[var(--border-strong)] text-[var(--text-secondary)] hover:border-rose-500/45 hover:text-rose-600 dark:hover:text-rose-300 hover:bg-rose-500/10'
+                  : 'bg-emerald-500/15 border-emerald-500/45 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/25 shadow-xs'
               }`}
             >
-              <Check className="w-3.5 h-3.5" />
-              <span>{isVerified ? 'Đã xác nhận phù hợp' : 'Xác nhận phù hợp'}</span>
+              {isVerified ? (
+                <>
+                  <X className="w-3.5 h-3.5" />
+                  <span>Hủy xác nhận</span>
+                </>
+              ) : (
+                <>
+                  <Check className="w-3.5 h-3.5" />
+                  <span>Xác nhận phù hợp</span>
+                </>
+              )}
             </button>
           </div>
         </div>
