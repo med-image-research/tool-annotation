@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import {
   ArrowRight,
   Check,
@@ -7,6 +8,7 @@ import {
   Crosshair,
   Eye,
   EyeOff,
+  MessageSquareText,
   RotateCcw,
   SquarePlus,
   Trash2,
@@ -35,6 +37,7 @@ interface FindingsPanelProps {
   onHideAllFindings: () => void;
   onToggleSolo: (findingId: string) => void;
   onVerifyFinding: (findingId: string, status: VerificationStatus) => void;
+  onUpdateNote: (findingId: string, note: string) => void;
   onVerifyAllAndNext: () => void;
   hasNextCase: boolean;
 }
@@ -44,6 +47,7 @@ interface FindingCardProps {
   isActive: boolean;
   isHidden: boolean;
   isSolo: boolean;
+  noteExpanded: boolean;
   selectedBox: SelectedBoxRef | null;
   onSelect: () => void;
   onSelectBox: (ref: SelectedBoxRef) => void;
@@ -53,6 +57,8 @@ interface FindingCardProps {
   onToggleVisibility: () => void;
   onToggleSolo: () => void;
   onVerify: (status: VerificationStatus) => void;
+  onToggleNote: () => void;
+  onUpdateNote: (note: string) => void;
 }
 
 function FindingCard({
@@ -60,6 +66,7 @@ function FindingCard({
   isActive,
   isHidden,
   isSolo,
+  noteExpanded,
   selectedBox,
   onSelect,
   onSelectBox,
@@ -69,10 +76,14 @@ function FindingCard({
   onToggleVisibility,
   onToggleSolo,
   onVerify,
+  onToggleNote,
+  onUpdateNote,
 }: FindingCardProps) {
   const color = getFindingColor(finding.rfIndex);
   const isModified = !boxesEqual(finding.boxes, finding.originalBoxes);
   const isVerified = finding.verificationStatus === 'verified';
+  const hasNote = finding.doctorNote.trim().length > 0;
+  const showNoteInput = noteExpanded || hasNote;
 
   return (
     <div
@@ -216,13 +227,13 @@ function FindingCard({
           </div>
 
           <div
-            className="pt-1.5 border-t border-[var(--border-main)]"
+            className="pt-1.5 border-t border-[var(--border-main)] flex items-center gap-1.5"
             onClick={(e) => e.stopPropagation()}
           >
             <button
               type="button"
               onClick={() => onVerify(isVerified ? 'pending' : 'verified')}
-              className={`w-full h-8 px-3 rounded-lg text-xs font-medium border flex items-center justify-center gap-1.5 transition-all ${
+              className={`flex-1 h-8 px-3 rounded-lg text-xs font-medium border flex items-center justify-center gap-1.5 transition-all ${
                 isVerified
                   ? 'bg-[var(--bg-control)] border-[var(--border-strong)] text-[var(--text-secondary)] hover:border-rose-500/45 hover:text-rose-600 dark:hover:text-rose-300 hover:bg-rose-500/10'
                   : 'bg-emerald-500/15 border-emerald-500/45 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/25 shadow-xs'
@@ -240,7 +251,42 @@ function FindingCard({
                 </>
               )}
             </button>
+
+            <button
+              type="button"
+              onClick={onToggleNote}
+              title="Ghi chú bác sĩ"
+              className={`h-8 w-8 rounded-lg border flex items-center justify-center transition-colors shrink-0 ${
+                showNoteInput
+                  ? 'bg-[var(--accent-bg)] border-[var(--accent-border)] text-[var(--accent-text)]'
+                  : 'bg-[var(--bg-control)] border-[var(--border-main)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+              }`}
+            >
+              <MessageSquareText className="w-3.5 h-3.5" />
+            </button>
           </div>
+
+          {showNoteInput && (
+            <div onClick={(e) => e.stopPropagation()}>
+              <input
+                type="text"
+                key={`${finding.id}-${finding.doctorNote}`}
+                defaultValue={finding.doctorNote}
+                onBlur={(e) => {
+                  if (e.target.value !== finding.doctorNote) {
+                    onUpdateNote(e.target.value);
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === 'Escape') {
+                    e.currentTarget.blur();
+                  }
+                }}
+                placeholder="Ghi chú bác sĩ cho finding này..."
+                className="w-full h-8 px-2.5 rounded-md bg-[var(--bg-subpanel)] border border-[var(--border-main)] text-xs text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-sky-500/60"
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -265,9 +311,11 @@ export function FindingsPanel({
   onHideAllFindings,
   onToggleSolo,
   onVerifyFinding,
+  onUpdateNote,
   onVerifyAllAndNext,
   hasNextCase,
 }: FindingsPanelProps) {
+  const [expandedNotes, setExpandedNotes] = useState<Record<string, boolean>>({});
   const verifiedCount = findings.filter((f) => f.verificationStatus === 'verified').length;
   const anyHidden = hiddenFindingIds.size > 0 || soloFindingId !== null;
 
@@ -322,6 +370,7 @@ export function FindingsPanel({
             isActive={f.id === activeFindingId}
             isHidden={soloFindingId !== null ? soloFindingId !== f.id : hiddenFindingIds.has(f.id)}
             isSolo={soloFindingId === f.id}
+            noteExpanded={Boolean(expandedNotes[f.id])}
             selectedBox={selectedBox}
             onSelect={() => onSelectFinding(f.id)}
             onSelectBox={onSelectBox}
@@ -331,6 +380,10 @@ export function FindingsPanel({
             onToggleVisibility={() => onToggleVisibility(f.id)}
             onToggleSolo={() => onToggleSolo(f.id)}
             onVerify={(status) => onVerifyFinding(f.id, status)}
+            onToggleNote={() =>
+              setExpandedNotes((prev) => ({ ...prev, [f.id]: !prev[f.id] }))
+            }
+            onUpdateNote={(note) => onUpdateNote(f.id, note)}
           />
         ))}
       </div>

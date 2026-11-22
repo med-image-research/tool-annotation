@@ -11,6 +11,7 @@ export async function PATCH(
     const body = (await req.json()) as {
       boxes?: BoundingBox[];
       verificationStatus?: VerificationStatus;
+      doctorNote?: string;
     };
 
     if (
@@ -25,9 +26,14 @@ export async function PATCH(
       return Response.json({ error: 'boxes must be an array' }, { status: 400 });
     }
 
+    if (body.doctorNote !== undefined && typeof body.doctorNote !== 'string') {
+      return Response.json({ error: 'doctorNote must be a string' }, { status: 400 });
+    }
+
     const updated = await updateFinding(id, {
       boxes: body.boxes,
       verificationStatus: body.verificationStatus,
+      doctorNote: body.doctorNote,
     });
 
     if (!updated) {

@@ -13,6 +13,7 @@ export interface ReferenceFinding {
   boxes: BoundingBox[];
   originalBoxes: BoundingBox[];
   verificationStatus: VerificationStatus;
+  doctorNote: string;
   impressionRelevancePrior: 'yes' | 'no';
   updatedAt: string;
 }

@@ -108,6 +108,7 @@ export function parsePreAnnotatedCsv(csvText: string): ReferenceFinding[] {
   const iUpdated = idx('updated_at');
   const iPrior = idx('impression_relevance_prior');
   const iVerify = idx('verification_status');
+  const iNote = idx('doctor_note');
 
   const perImageCount = new Map<string, number>();
   const findings: ReferenceFinding[] = [];
@@ -138,6 +139,7 @@ export function parsePreAnnotatedCsv(csvText: string): ReferenceFinding[] {
       boxes,
       originalBoxes: boxes.map((b) => [...b] as BoundingBox),
       verificationStatus,
+      doctorNote: (iNote >= 0 ? cols[iNote] : '')?.trim() ?? '',
       impressionRelevancePrior:
         (cols[iPrior] ?? '').trim().toLowerCase() === 'no' ? 'no' : 'yes',
       updatedAt: (cols[iUpdated] ?? '').trim() || new Date().toISOString(),
@@ -176,6 +178,7 @@ export function serializeFindingsToCsv(findings: ReferenceFinding[]): string {
     'impression_relevance_prior',
     'verification_status',
     'boxes_modified',
+    'doctor_note',
   ];
 
   const lines = [headers.join(',')];
@@ -206,6 +209,7 @@ export function serializeFindingsToCsv(findings: ReferenceFinding[]): string {
       f.impressionRelevancePrior,
       f.verificationStatus,
       modified ? 'yes' : 'no',
+      f.doctorNote,
     ].map(escapeCsvCell);
 
     lines.push(cells.join(','));

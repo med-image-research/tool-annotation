@@ -10,7 +10,7 @@
 - **Hỗ trợ đọc phim thuận tiện**: Chỉnh độ sáng, độ nét, đảo ngược âm bản, đối chiếu lại với khung gốc nét đứt và tự tải sẵn ảnh của ca kế tiếp.
 - **Giao diện Sáng / Tối linh hoạt**: Hỗ trợ đổi giao diện sáng hoặc tối, ẩn hiện và kéo co giãn độ rộng cả hai thanh bên để mở rộng tối đa vùng xem phim.
 - **Đường dẫn riêng cho từng ca**: Mỗi ảnh có URL dạng `/case/VX-000002`, hỗ trợ tải lại trang và chia sẻ link trực tiếp.
-- **Xuất file CSV**: Tải xuống kết quả đã rà soát theo cấu trúc file gốc kèm cột `verification_status` và `boxes_modified`.
+- **Xuất file CSV**: Tải xuống kết quả đã rà soát theo cấu trúc file gốc kèm cột `verification_status`, `boxes_modified` và `doctor_note`.
 
 ## Phím tắt nhanh
 

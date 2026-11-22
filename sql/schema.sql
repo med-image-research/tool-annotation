@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS reference_findings (
   boxes JSONB NOT NULL DEFAULT '[]'::jsonb,
   original_boxes JSONB NOT NULL DEFAULT '[]'::jsonb,
   verification_status TEXT NOT NULL DEFAULT 'pending',
+  doctor_note TEXT NOT NULL DEFAULT '',
   impression_relevance_prior TEXT NOT NULL DEFAULT 'yes',
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

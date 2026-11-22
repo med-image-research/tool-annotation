@@ -257,6 +257,7 @@ export function Workstation({ initialData, initialImageId }: WorkstationProps) {
       patch: {
         boxes?: BoundingBox[];
         verificationStatus?: VerificationStatus;
+        doctorNote?: string;
       }
     ) =>
       runSaveRequest(() =>
@@ -389,6 +390,18 @@ export function Workstation({ initialData, initialImageId }: WorkstationProps) {
         updatedAt: new Date().toISOString(),
       }));
       void persistFinding(findingId, { verificationStatus: status });
+    },
+    [patchFindingLocal, persistFinding]
+  );
+
+  const handleUpdateNote = useCallback(
+    (findingId: string, note: string) => {
+      patchFindingLocal(findingId, (f) => ({
+        ...f,
+        doctorNote: note,
+        updatedAt: new Date().toISOString(),
+      }));
+      void persistFinding(findingId, { doctorNote: note });
     },
     [patchFindingLocal, persistFinding]
   );
@@ -662,6 +675,7 @@ export function Workstation({ initialData, initialImageId }: WorkstationProps) {
                     setSoloFindingId((prev) => (prev === findingId ? null : findingId));
                   }}
                   onVerifyFinding={handleVerifyFinding}
+                  onUpdateNote={handleUpdateNote}
                   onVerifyAllAndNext={handleVerifyAllAndNext}
                   hasNextCase={
                     currentFilteredIndex >= 0 && currentFilteredIndex < filteredCases.length - 1

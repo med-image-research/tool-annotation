@@ -51,9 +51,14 @@ async function ensureNeonInitialized(): Promise<void> {
           boxes JSONB NOT NULL DEFAULT '[]'::jsonb,
           original_boxes JSONB NOT NULL DEFAULT '[]'::jsonb,
           verification_status TEXT NOT NULL DEFAULT 'pending',
+          doctor_note TEXT NOT NULL DEFAULT '',
           impression_relevance_prior TEXT NOT NULL DEFAULT 'yes',
           updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
         )
+      `;
+      await sql`
+        ALTER TABLE reference_findings
+        ADD COLUMN IF NOT EXISTS doctor_note TEXT NOT NULL DEFAULT ''
       `;
       await sql`
         CREATE INDEX IF NOT EXISTS idx_reference_findings_image_id
@@ -80,6 +85,7 @@ async function ensureNeonInitialized(): Promise<void> {
               boxes: f.boxes,
               original_boxes: f.originalBoxes,
               verification_status: f.verificationStatus,
+              doctor_note: f.doctorNote,
               impression_relevance_prior: f.impressionRelevancePrior,
               updated_at: f.updatedAt,
             }))
@@ -88,16 +94,17 @@ async function ensureNeonInitialized(): Promise<void> {
             INSERT INTO reference_findings (
               id, image_id, rf_label, rf_index, image_url, finding_text,
               csv_status, boxes, original_boxes, verification_status,
-              impression_relevance_prior, updated_at
+              doctor_note, impression_relevance_prior, updated_at
             )
             SELECT
               x.id, x.image_id, x.rf_label, x.rf_index, x.image_url, x.finding_text,
               x.csv_status, x.boxes, x.original_boxes, x.verification_status,
-              x.impression_relevance_prior, x.updated_at::timestamptz
+              x.doctor_note, x.impression_relevance_prior, x.updated_at::timestamptz
             FROM jsonb_to_recordset(${payload}::jsonb) AS x(
               id text, image_id text, rf_label text, rf_index int, image_url text,
               finding_text text, csv_status text, boxes jsonb, original_boxes jsonb,
-              verification_status text, impression_relevance_prior text, updated_at text
+              verification_status text, doctor_note text, impression_relevance_prior text,
+              updated_at text
             )
             ON CONFLICT (id) DO NOTHING
           `;
@@ -132,6 +139,7 @@ function mapDbRow(row: Record<string, unknown>): ReferenceFinding {
     boxes: parseJsonBoxes(row.boxes),
     originalBoxes: parseJsonBoxes(row.original_boxes),
     verificationStatus,
+    doctorNote: String(row.doctor_note ?? ''),
     impressionRelevancePrior: String(row.impression_relevance_prior) === 'no' ? 'no' : 'yes',
     updatedAt: row.updated_at
       ? new Date(String(row.updated_at)).toISOString()
@@ -144,7 +152,10 @@ async function readLocalFindings(): Promise<ReferenceFinding[]> {
     const raw = await fs.readFile(LOCAL_STORE_PATH, 'utf-8');
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed) && parsed.length > 0) {
-      return parsed as ReferenceFinding[];
+      return (parsed as ReferenceFinding[]).map((f) => ({
+        ...f,
+        doctorNote: typeof f.doctorNote === 'string' ? f.doctorNote : '',
+      }));
     }
   } catch {
   }
@@ -177,7 +188,7 @@ export async function getAllFindings(): Promise<ReferenceFinding[]> {
     const rows = await sql`
       SELECT id, image_id, rf_label, rf_index, image_url, finding_text,
              csv_status, boxes, original_boxes, verification_status,
-             impression_relevance_prior, updated_at
+             doctor_note, impression_relevance_prior, updated_at
       FROM reference_findings
       ORDER BY image_id ASC, rf_index ASC, id ASC
     `;
@@ -221,6 +232,7 @@ export async function getDatasetPayload(): Promise<DatasetPayload> {
 export interface FindingPatchInput {
   boxes?: BoundingBox[];
   verificationStatus?: VerificationStatus;
+  doctorNote?: string;
 }
 
 export async function updateFinding(
@@ -238,7 +250,7 @@ export async function updateFinding(
     const existingRows = await sql`
       SELECT id, image_id, rf_label, rf_index, image_url, finding_text,
              csv_status, boxes, original_boxes, verification_status,
-             impression_relevance_prior, updated_at
+             doctor_note, impression_relevance_prior, updated_at
       FROM reference_findings
       WHERE id = ${id}
       LIMIT 1
@@ -251,11 +263,12 @@ export async function updateFinding(
       SET
         boxes = ${JSON.stringify(sanitizedBoxes ?? current.boxes)}::jsonb,
         verification_status = ${patch.verificationStatus ?? current.verificationStatus},
+        doctor_note = ${patch.doctorNote !== undefined ? patch.doctorNote : current.doctorNote},
         updated_at = ${nowIso}::timestamptz
       WHERE id = ${id}
       RETURNING id, image_id, rf_label, rf_index, image_url, finding_text,
                 csv_status, boxes, original_boxes, verification_status,
-                impression_relevance_prior, updated_at
+                doctor_note, impression_relevance_prior, updated_at
     `;
     return mapDbRow(updatedRows[0] as Record<string, unknown>);
   }
@@ -269,6 +282,7 @@ export async function updateFinding(
     ...current,
     boxes: sanitizedBoxes ?? current.boxes,
     verificationStatus: patch.verificationStatus ?? current.verificationStatus,
+    doctorNote: patch.doctorNote !== undefined ? patch.doctorNote : current.doctorNote,
     updatedAt: nowIso,
   };
   findings[targetIdx] = updated;
@@ -291,7 +305,7 @@ export async function verifyCaseFindings(
       WHERE image_id = ${imageId}
       RETURNING id, image_id, rf_label, rf_index, image_url, finding_text,
                 csv_status, boxes, original_boxes, verification_status,
-                impression_relevance_prior, updated_at
+                doctor_note, impression_relevance_prior, updated_at
     `;
     return rows.map((r) => mapDbRow(r as Record<string, unknown>));
   }
