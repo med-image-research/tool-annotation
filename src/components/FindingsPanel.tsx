@@ -282,7 +282,7 @@ function FindingCard({
                     e.currentTarget.blur();
                   }
                 }}
-                placeholder="Ghi chú bác sĩ cho finding này..."
+                placeholder="Ghi chú cho finding này..."
                 className="w-full h-8 px-2.5 rounded-md bg-[var(--bg-subpanel)] border border-[var(--border-main)] text-xs text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-sky-500/60"
               />
             </div>
