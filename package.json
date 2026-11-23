@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "sync:images": "node scripts/sync-csv-images.mjs",
-    "upload:azure": "node scripts/upload-azure.mjs"
+    "upload:azure": "node scripts/upload-azure.mjs",
+    "db:sync": "node scripts/sync-csv-to-db.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.2.1",
